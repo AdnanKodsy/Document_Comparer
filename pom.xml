@@ -2,12 +2,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.example</groupId>
-    <artifactId>filematcher</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <groupId>com.Adnan</groupId>
+    <artifactId>documentcomparer</artifactId>
     <packaging>jar</packaging>
-    <name>filematcher</name>
-    <description>Spring Boot File Matcher Project</description>
+    <name>documentcomparer</name>
+    <description>Spring Boot Document Comparer Project</description>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
