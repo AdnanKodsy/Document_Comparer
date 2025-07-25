@@ -11,10 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-@Component
-public class DocumentWordExtractor implements WordExtractor {
+@Component("txt")
+public class TextFileWordExtractor implements WordExtractor {
 
-    private static final Logger logger = LoggerFactory.getLogger(DocumentWordExtractor.class);
+    private static final Logger logger = LoggerFactory.getLogger(TextFileWordExtractor.class);
 
     @Override
     public Set<String> extractWords(Path filePath) {
