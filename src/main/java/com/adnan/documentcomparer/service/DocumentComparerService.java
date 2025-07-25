@@ -8,6 +8,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,20 +43,30 @@ public class DocumentComparerService {
             logger.error("Failed to extract words from base file: {}", properties.getBaseFilePath(), e);
             return results;
         }
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(properties.getInputFilesDir()))) {
-            for (Path path : stream) {
+            stream.forEach(path -> {
                 if (Files.isRegularFile(path)) {
-                    try {
-                        Set<String> otherWords = extractor.extractWords(path);
-                        double score = matchCalculater.calculateScore(wordsInA, otherWords);
-                        results.put(path.getFileName().toString(), score);
-                    } catch (IOException e) {
-                        logger.error("Failed to extract words from file: {}", path, e);
-                    }
+                    executorService.submit(() -> {
+                        try {
+                            Set<String> otherWords = extractor.extractWords(path);
+                            double score = matchCalculater.calculateScore(wordsInA, otherWords);
+                            synchronized (results) {
+                                results.put(path.getFileName().toString(), score);
+                            }
+                        } catch (IOException e) {
+                            logger.error("Failed to extract words from file: {}", path, e);
+                        }
+                    });
                 }
-            }
+            });
+            executorService.shutdown();
+            executorService.awaitTermination(1, TimeUnit.HOURS);
         } catch (IOException e) {
             logger.error("Failed to read input files directory: {}", properties.getInputFilesDir(), e);
+        } catch (InterruptedException e) {
+            logger.error("Thread execution was interrupted", e);
+            Thread.currentThread().interrupt();
         }
         return results;
     }
