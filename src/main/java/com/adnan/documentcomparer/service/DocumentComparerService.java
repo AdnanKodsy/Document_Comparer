@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.adnan.documentcomparer.MatchingRatio.MatchCalculater;
@@ -18,6 +20,7 @@ import com.adnan.documentcomparer.config.DocumentComparerProperties;
 @Service
 public class DocumentComparerService {
 
+    private static final Logger logger = LoggerFactory.getLogger(DocumentComparerService.class);
     private final WordExtractor extractor;
     private final MatchCalculater matchCalculater;
     private final DocumentComparerProperties properties;
@@ -28,20 +31,30 @@ public class DocumentComparerService {
         this.properties = properties;
     }
 
-    public Map<String, Double> matchScores() throws IOException {
-        Set<String> wordsInA = extractor.extractWords(Paths.get(properties.getBaseFilePath()));
+    public Map<String, Double> matchScores() {
         Map<String, Double> results = new HashMap<>();
-
+        Set<String> wordsInA;
+        try {
+            wordsInA = extractor.extractWords(Paths.get(properties.getBaseFilePath()));
+        } catch (IOException e) {
+            logger.error("Failed to extract words from base file: {}", properties.getBaseFilePath(), e);
+            return results;
+        }
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(properties.getInputFilesDir()))) {
             for (Path path : stream) {
                 if (Files.isRegularFile(path)) {
-                    Set<String> otherWords = extractor.extractWords(path);
-                    double score = matchCalculater.calculateScore(wordsInA, otherWords);
-                    results.put(path.getFileName().toString(), score);
+                    try {
+                        Set<String> otherWords = extractor.extractWords(path);
+                        double score = matchCalculater.calculateScore(wordsInA, otherWords);
+                        results.put(path.getFileName().toString(), score);
+                    } catch (IOException e) {
+                        logger.error("Failed to extract words from file: {}", path, e);
+                    }
                 }
             }
+        } catch (IOException e) {
+            logger.error("Failed to read input files directory: {}", properties.getInputFilesDir(), e);
         }
-
         return results;
     }
 }

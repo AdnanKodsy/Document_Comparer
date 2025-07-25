@@ -7,17 +7,26 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DocumentWordExtractor implements WordExtractor {
 
+    private static final Logger logger = LoggerFactory.getLogger(DocumentWordExtractor.class);
+
     @Override
-    public Set<String> extractWords(Path filePath) throws IOException {
-        return Files.lines(filePath)
-                .flatMap(line -> Arrays.stream(line.split("\\s+")))
-                .map(word -> word.replaceAll("[^A-Za-z]", "").toLowerCase())
-                .filter(word -> !word.isEmpty())
-                .collect(Collectors.toSet());
+    public Set<String> extractWords(Path filePath) {
+        try {
+            return Files.lines(filePath)
+                    .flatMap(line -> Arrays.stream(line.split("\\s+")))
+                    .map(word -> word.replaceAll("[^A-Za-z]", "").toLowerCase())
+                    .filter(word -> !word.isEmpty())
+                    .collect(Collectors.toSet());
+        } catch (IOException e) {
+            logger.error("Failed to read file: {}", filePath, e);
+            return java.util.Collections.emptySet();
+        }
     }
 }
