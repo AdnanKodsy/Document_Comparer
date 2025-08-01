@@ -6,8 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +37,7 @@ public class DocumentComparerService {
 
     public Map<String, Double> matchScores() {
         Map<String, Double> results = new HashMap<>();
-        Set<String> wordsInA;
+        List<String> wordsInA;
         try {
             wordsInA = extractor.extractWords(Paths.get(properties.getBaseFilePath()));
         } catch (IOException e) {
@@ -49,7 +50,7 @@ public class DocumentComparerService {
                 if (Files.isRegularFile(path)) {
                     executorService.submit(() -> {
                         try {
-                            Set<String> otherWords = extractor.extractWords(path);
+                            List<String> otherWords = extractor.extractWords(path);
                             double score = matchCalculater.calculateScore(wordsInA, otherWords);
                             synchronized (results) {
                                 results.put(path.getFileName().toString(), score);
@@ -68,6 +69,6 @@ public class DocumentComparerService {
             logger.error("Thread execution was interrupted", e);
             Thread.currentThread().interrupt();
         }
-        return results;
+        return new TreeMap<>(results);
     }
 }

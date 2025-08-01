@@ -2,9 +2,9 @@ package com.adnan.documentcomparer.WordExtractor;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Set;
+import java.util.List;
 
 public interface WordExtractor {
 
-    Set<String> extractWords(Path filePath) throws IOException;
+    List<String> extractWords(Path filePath) throws IOException;
 }

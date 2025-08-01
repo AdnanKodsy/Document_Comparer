@@ -1,8 +1,8 @@
 package com.adnan.documentcomparer.MatchingRatio;
 
-import java.util.Set;
+import java.util.List;
 
 public interface MatchCalculater {
 
-    double calculateScore(Set<String> fileA, Set<String> otherFile);
+    double calculateScore(List<String> fileA, List<String> otherFile);
 }
