@@ -15,11 +15,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.adnan.documentcomparer.MatchingRatio.MatchCalculater;
 import com.adnan.documentcomparer.WordExtractor.WordExtractor;
 import com.adnan.documentcomparer.config.DocumentComparerProperties;
+import com.adnan.documentcomparer.model.BaseFileWord;
+import com.adnan.documentcomparer.repository.BaseFileWordRepository;
 
 @Service
 public class DocumentComparerService {
@@ -29,10 +32,29 @@ public class DocumentComparerService {
     private final MatchCalculater matchCalculater;
     private final DocumentComparerProperties properties;
 
-    public DocumentComparerService(WordExtractor extractor, MatchCalculater matchCalculater, DocumentComparerProperties properties) {
+    public DocumentComparerService(WordExtractor extractor, MatchCalculater matchCalculater,
+            DocumentComparerProperties properties) {
         this.extractor = extractor;
         this.matchCalculater = matchCalculater;
         this.properties = properties;
+    }
+
+    @Autowired
+    private BaseFileWordRepository baseFileWordRepository;
+
+    public void saveBaseFileWords(List<String> words) {
+        for (String word : words) {
+            BaseFileWord entity = new BaseFileWord();
+            entity.setWord(word);
+            baseFileWordRepository.save(entity);
+        }
+    }
+
+    public List<String> getBaseFileWords() {
+        return baseFileWordRepository.findAll()
+                .stream()
+                .map(BaseFileWord::getWord)
+                .toList();
     }
 
     public Map<String, Double> matchScores() {
@@ -40,6 +62,7 @@ public class DocumentComparerService {
         List<String> wordsInA;
         try {
             wordsInA = extractor.extractWords(Paths.get(properties.getBaseFilePath()));
+            saveBaseFileWords(wordsInA);
         } catch (IOException e) {
             logger.error("Failed to extract words from base file: {}", properties.getBaseFilePath(), e);
             return results;
